@@ -12,9 +12,18 @@ class CategoriaController extends Controller
         // Determina si la peticion que se hace es diferente a una peticion ajax, redirije a raiz
         // Metodos accesibles solo mediante peticiones ajax
         if (!$request->ajax()) return redirect('/');
+
+        $buscar =  $request->buscar; // A travez de ajax recibimos el parametro, mediante el metodo get
+        $criterio =  $request->criterio;
+
+        if ($buscar === '') {
+            $categorias = Categoria::orderBy('id', 'desc')->paginate(10); // Obtenemos todos los datos y Paguimos con Eloquent
+        } else {
+            $categorias = Categoria::where($criterio, 'like', '%'.$buscar.'%')->orderBy('id', 'desc')->paginate(10); // Realiza la busqueda por criterio
+        }
+
         // Listar todos los registros de la tabla categoria
         //$categorias = Categoria::all(); // Alamacenamos todo lo que devuelva el metodo all
-        $categorias = Categoria::paginate(10); // Obtenemos todos los datos y Paguimos con Eloquent
         return [
             'pagination' => [
                 'total'         => $categorias->total(),

@@ -19,12 +19,12 @@
                     <div class="form-group row">
                         <div class="col-md-6">
                             <div class="input-group">
-                                <select class="form-control col-md-3" id="opcion" name="opcion">
+                                <select class="form-control col-md-3" v-model="criterio">
                                     <option value="nombre">Nombre</option>
                                     <option value="descripcion">Descripción</option>
                                 </select>
-                                <input type="text" id="texto" name="texto" class="form-control" placeholder="Texto a buscar">
-                                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> Buscar</button>
+                                <input type="text" v-model="buscar" @keyup.enter="listarCategoria(1, buscar, criterio)" class="form-control" placeholder="Texto a buscar">
+                                <button type="submit" @click="listarCategoria(1, buscar, criterio)" class="btn btn-primary"><i class="fa fa-search"></i> Buscar</button>
                             </div>
                         </div>
                     </div>
@@ -70,16 +70,16 @@
                     <nav>
                         <ul class="pagination">
                             <li class="page-item" v-if="pagination.current_page > 1"> <!--Si la pag actual es mayor a 1. Solo muestra boton si estamos desde la pag 2 en adelante-->
-                                <a class="page-link" href="#" @click.prevent="cambiarPagina(pagination.current_page - 1)">Ant</a> <!--Con cada click, restamos 1 a la pag actual-->
+                                <a class="page-link" href="#" @click.prevent="cambiarPagina(pagination.current_page - 1, buscar, criterio)">Ant</a> <!--Con cada click, restamos 1 a la pag actual-->
                             </li>
                             <!--Aca usamos la prop computada
                             Mostramos todos los nros dentro de la seccion de paginacion
                             -->
                             <li class="page-item" v-for="page in pagesNumber" :key="page" :class="[page === isActived? 'active': '']"> <!--El boton nos inidica que estamos en la pag actual-->
-                                <a class="page-link" href="#" @click.prevent="cambiarPagina(page)" v-text="page"></a>
+                                <a class="page-link" href="#" @click.prevent="cambiarPagina(page, buscar, criterio)" v-text="page"></a>
                             </li>
                             <li class="page-item" v-if="pagination.current_page < pagination.last_page"> <!--Mientras la pag actual sea menor que la ultima pag, puede mostrar la pag siguiente -->
-                                <a class="page-link" href="#" @click.prevent="cambiarPagina(pagination.current-page + 1)">Sig</a>
+                                <a class="page-link" href="#" @click.prevent="cambiarPagina(pagination.current_page + 1, buscar, criterio)">Sig</a>
                             </li>
                         </ul>
                     </nav>
@@ -161,7 +161,9 @@
                     'from'          : 0,    // Desde la pag
                     'to'            : 0,    // Hasta la pag
                 },
-                offset: 3
+                offset: 3,
+                criterio: 'nombre', // Indica cual es el campo de busqueda
+                buscar: ''
             }
         },
         // Propiedad computada
@@ -203,9 +205,9 @@
         },
         methods : {
           // Metodo que retornara el listado de registros
-            listarCategoria(page) {
+            listarCategoria(page, buscar, criterio) {
                 let me = this;
-                var url = '/categoria?page=' + page;
+                var url = '/categoria?page='+page+'&buscar='+buscar+'&criterio='+criterio;
                 axios.get(url).then(function (response) { // todo lo que nos devuelve el index del controlador
                     var respuesta = response.data;
                         // Si toudo sale bien
@@ -218,13 +220,13 @@
                         console.log(error);
                     })
             },
-            cambiarPagina(page) {
+            cambiarPagina(page, buscar, criterio) {
                 // Recibe de parametro el nro de la pag a mostrar
                 let me = this;
                 // Actualiza la pag actual
                 me.pagination.current_page = page;
                 // Envia la peticion para visualizar la data de esa pag
-                me.listarCategoria(page);
+                me.listarCategoria(page, buscar, criterio);
             },
             registrarCategoria() {
                 if (this.validarCategoria()) {
@@ -239,7 +241,7 @@
                     'descripcion': this.descripcion
                 }).then(function (response) {
                     me.cerrarModal();
-                    me.listarCategoria();
+                    me.listarCategoria(1, '', 'nombre');
                 }).catch(function (error) {
                     console.log(error);
                 });
@@ -258,10 +260,11 @@
                     'id': this.categoria_id
                 }).then(function (response) { // Si todo va bien
                     me.cerrarModal();
-                    me.listarCategoria();
+                    // me.listarCategoria(1, this.buscar, 'nombre');
                 }).catch(function (error) { // Si hay errores
                     console.log(error);
                 });
+                me.listarCategoria(1, this.buscar, this.criterio);
             },
             desactivarCategoria(id) {
                 const swalWithBootstrapButtons = swal.mixin({
@@ -286,7 +289,7 @@
                         axios.put('/categoria/desactivar', {
                             'id': id
                         }).then(function (response) { // Si todo va bien
-                            me.listarCategoria();
+                            me.listarCategoria(1, '', 'nombre');
                             swalWithBootstrapButtons(
                                 'Desactivado!',
                                 'El registro a sido desactivado con exito.',
@@ -332,7 +335,7 @@
                         axios.put('/categoria/activar', {
                             'id': id
                         }).then(function (response) { // Si todo va bien
-                            me.listarCategoria();
+                            me.listarCategoria(1, '', 'nombre');
                             swalWithBootstrapButtons(
                                 'Activado!',
                                 'El registro a sido activado con exito.',
@@ -408,7 +411,7 @@
         },
         mounted() {
             // Hacemos referencia a los metodos creados
-            this.listarCategoria();
+            this.listarCategoria(1, this.buscar, this.criterio);
         }
     }
 </script>
