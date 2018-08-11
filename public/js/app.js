@@ -33215,12 +33215,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
-//
-//
-//
-//
-//
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     data: function data() {
@@ -33234,23 +33228,80 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             tituloModal: '',
             tipoAccion: 0,
             errorCategoria: 0,
-            errorMostrarMsjCategoria: []
+            errorMostrarMsjCategoria: [],
+            pagination: {
+                'total': 0, // Total de registros
+                'current_page': 0, // La pag actual
+                'per_page': 0, // Nros de reg por pag
+                'last_page': 0, // La ultima pag
+                'from': 0, // Desde la pag
+                'to': 0 // Hasta la pag
+            },
+            offset: 3
         };
     },
 
+    // Propiedad computada
+    computed: {
+        isActived: function isActived() {
+            // Retornamos la pag actual
+            return this.pagination.current_page;
+        },
+        // Calcula el nro de elementos de la paginacion
+        pagesNumber: function pagesNumber() {
+            // Si la pag es dif al ultimo elemento de la pag actual
+            if (!this.pagination.to) {
+                return [];
+            }
+
+            // Almacenamos la resta de la pag actual y el offset
+            var from = this.pagination.current_page - this.offset;
+            // Evaluamos si la pag actual es 0 o menos, se establece la pag actual a 1
+            if (from < 1) {
+                from = 1;
+            }
+
+            // Almacena la suma de la pag actual + el doble de offset
+            var to = from + this.offset * 2;
+            // Si to es mayor o igual que la ultima pag, establemos ese valor a to
+            if (to >= this.pagination.last_page) {
+                to = this.pagination.last_page;
+            }
+
+            var pagesArray = [];
+            // Mientras la pag actual se menor o igual a la ultima pag
+            while (from <= to) {
+                pagesArray.push(from);
+                from++;
+            }
+
+            return pagesArray;
+        }
+    },
     methods: {
         // Metodo que retornara el listado de registros
-        listarCategoria: function listarCategoria() {
+        listarCategoria: function listarCategoria(page) {
             var me = this;
-            axios.get('/categoria').then(function (response) {
+            var url = '/categoria?page=' + page;
+            axios.get(url).then(function (response) {
                 // todo lo que nos devuelve el index del controlador
+                var respuesta = response.data;
                 // Si toudo sale bien
                 // console.log(response);
-                me.arrayCategoria = response.data;
+                me.arrayCategoria = respuesta.categorias.data;
+                me.pagination = respuesta.pagination;
             }).catch(function (error) {
                 // atrapamos el error
                 console.log(error);
             });
+        },
+        cambiarPagina: function cambiarPagina(page) {
+            // Recibe de parametro el nro de la pag a mostrar
+            var me = this;
+            // Actualiza la pag actual
+            me.pagination.current_page = page;
+            // Envia la peticion para visualizar la data de esa pag
+            me.listarCategoria(page);
         },
         registrarCategoria: function registrarCategoria() {
             if (this.validarCategoria()) {
@@ -33340,6 +33391,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             var _this2 = this;
 
             var swalWithBootstrapButtons = swal.mixin({
+                // Comente para separar los botones, no carga las clases de bootstrap
                 //confirmButtonClass: 'btn btn-success',
                 //cancelButtonClass: 'btn btn-danger',
                 //buttonsStyling: false,
@@ -33355,7 +33407,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 reverseButtons: true
             }).then(function (result) {
                 if (result.value) {
-                    // Utilizamos axios para realizar una petiocion http para activar
+                    // Utilizamos axios para realizar una peticion http para activar
                     var me = _this2; // Hace ref a este mismo archivo
                     // AXIOS, recibe 2 parametros; ruta + parametros
                     axios.put('/categoria/activar', {
@@ -33371,7 +33423,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 } else if (
                 // Read more about handling dismissals
                 result.dismiss === swal.DismissReason.cancel) {
-                    // Mensaje cuando clickeamos en CANCELAR
+                    // Aqui muestra mensaje cuando clickeamos en CANCELAR
                     // swalWithBootstrapButtons(
                     //     'Cancelled',
                     //     'Your imaginary file is safe :)',
@@ -33572,7 +33624,78 @@ var render = function() {
             ]
           ),
           _vm._v(" "),
-          _vm._m(3)
+          _c("nav", [
+            _c(
+              "ul",
+              { staticClass: "pagination" },
+              [
+                _vm.pagination.current_page > 1
+                  ? _c("li", { staticClass: "page-item" }, [
+                      _c(
+                        "a",
+                        {
+                          staticClass: "page-link",
+                          attrs: { href: "#" },
+                          on: {
+                            click: function($event) {
+                              $event.preventDefault()
+                              _vm.cambiarPagina(_vm.pagination.current_page - 1)
+                            }
+                          }
+                        },
+                        [_vm._v("Ant")]
+                      )
+                    ])
+                  : _vm._e(),
+                _vm._v(" "),
+                _vm._l(_vm.pagesNumber, function(page) {
+                  return _c(
+                    "li",
+                    {
+                      key: page,
+                      staticClass: "page-item",
+                      class: [page === _vm.isActived ? "active" : ""]
+                    },
+                    [
+                      _c("a", {
+                        staticClass: "page-link",
+                        attrs: { href: "#" },
+                        domProps: { textContent: _vm._s(page) },
+                        on: {
+                          click: function($event) {
+                            $event.preventDefault()
+                            _vm.cambiarPagina(page)
+                          }
+                        }
+                      })
+                    ]
+                  )
+                }),
+                _vm._v(" "),
+                _vm.pagination.current_page < _vm.pagination.last_page
+                  ? _c("li", { staticClass: "page-item" }, [
+                      _c(
+                        "a",
+                        {
+                          staticClass: "page-link",
+                          attrs: { href: "#" },
+                          on: {
+                            click: function($event) {
+                              $event.preventDefault()
+                              _vm.cambiarPagina(
+                                _vm.pagination.current - _vm.page + 1
+                              )
+                            }
+                          }
+                        },
+                        [_vm._v("Sig")]
+                      )
+                    ])
+                  : _vm._e()
+              ],
+              2
+            )
+          ])
         ])
       ])
     ]),
@@ -33865,50 +33988,6 @@ var staticRenderFns = [
         _c("th", [_vm._v("Descripción")]),
         _vm._v(" "),
         _c("th", [_vm._v("Estado")])
-      ])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("nav", [
-      _c("ul", { staticClass: "pagination" }, [
-        _c("li", { staticClass: "page-item" }, [
-          _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
-            _vm._v("Ant")
-          ])
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "page-item active" }, [
-          _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
-            _vm._v("1")
-          ])
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "page-item" }, [
-          _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
-            _vm._v("2")
-          ])
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "page-item" }, [
-          _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
-            _vm._v("3")
-          ])
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "page-item" }, [
-          _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
-            _vm._v("4")
-          ])
-        ]),
-        _vm._v(" "),
-        _c("li", { staticClass: "page-item" }, [
-          _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
-            _vm._v("Sig")
-          ])
-        ])
       ])
     ])
   }

@@ -13,8 +13,19 @@ class CategoriaController extends Controller
         // Metodos accesibles solo mediante peticiones ajax
         if (!$request->ajax()) return redirect('/');
         // Listar todos los registros de la tabla categoria
-        $categorias = Categoria::all(); // Alamacenamos todo lo que devuelva el metodo all
-        return $categorias;
+        //$categorias = Categoria::all(); // Alamacenamos todo lo que devuelva el metodo all
+        $categorias = Categoria::paginate(10); // Obtenemos todos los datos y Paguimos con Eloquent
+        return [
+            'pagination' => [
+                'total'         => $categorias->total(),
+                'current_page'  => $categorias->currentPage(),
+                'per_page'      => $categorias->perPage(),
+                'last_page'     => $categorias->lastPage(),
+                'from'          => $categorias->firstItem(),
+                'to'            => $categorias->lastItem(),
+            ],
+            'categorias' => $categorias
+        ];
     }
 
     public function store(Request $request)
