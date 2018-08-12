@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Categoria;  // Importamos el modelo
+use Illuminate\Support\Facades\DB;
 
 class CategoriaController extends Controller
 {
@@ -16,7 +17,7 @@ class CategoriaController extends Controller
         $buscar =  $request->buscar; // A travez de ajax recibimos el parametro, mediante el metodo get
         $criterio =  $request->criterio;
 
-        if ($buscar === '') {
+        if ($buscar == '') {
             $categorias = Categoria::orderBy('id', 'desc')->paginate(10); // Obtenemos todos los datos y Paguimos con Eloquent
         } else {
             $categorias = Categoria::where($criterio, 'like', '%'.$buscar.'%')->orderBy('id', 'desc')->paginate(10); // Realiza la busqueda por criterio
@@ -35,6 +36,15 @@ class CategoriaController extends Controller
             ],
             'categorias' => $categorias
         ];
+    }
+
+    public function selectCategoria(Request $request) {
+        // Obtiene la lista de todas las categorias activas
+        if (!$request->ajax()) return redirect('/');
+        $categorias = Categoria::where('condicion', '=', 1)
+        ->select('id', 'nombre')->orderBy('nombre', 'asc')->get();
+
+        return ['categorias' => $categorias]; // Retornamos todas las categorias cuya condicion sea igual a uno
     }
 
     public function store(Request $request)
@@ -72,5 +82,12 @@ class CategoriaController extends Controller
         $categoria = Categoria::findOrFail($request->id); // Buscamos la categoria ya registrada en la db, luego activamos
         $categoria->condicion = '1';
         $categoria->save(); // Actualizamos
+    }
+
+    public function validar(Request $request) {
+        if (!$request->ajax()) return redirect('/');
+//        $respuesta = DB::select('SELECT nombre FROM categorias WHERE nombre = ?', [$request->nombre]);
+        $respuesta = DB::select('SELECT nombre FROM categorias WHERE nombre = :nombre', ['nombre' => $request->nombre]);
+        return $respuesta;
     }
 }

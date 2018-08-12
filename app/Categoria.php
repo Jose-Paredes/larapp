@@ -14,4 +14,10 @@ class Categoria extends Model
 
     protected $fillable = ['nombre', 'descripcion', 'condicion'];
 
+    // Hacemos referencia al modelo con el cual existe relacion
+    // Una categoria puede tener varios articulos
+    public function articulos() {
+        return $this->hasMany('App\Articulo');
+    }
+
 }
