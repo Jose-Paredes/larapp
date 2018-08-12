@@ -18,6 +18,8 @@ Route::get('/', function () {
 
 // Cada vez que se ingresa a esta uri, hacemos una peticion al
 // controlador y a la funcion index
+
+// RUTAS PARA CATEGORIA
 Route::get('/categoria', 'CategoriaController@index');
 Route::post('/categoria/registrar', 'CategoriaController@store');
 Route::put('/categoria/actualizar', 'CategoriaController@update');
@@ -34,7 +36,12 @@ Route::put('/articulo/desactivar', 'ArticuloController@desactivar');
 Route::put('/articulo/activar', 'ArticuloController@activar');
 Route::post('/validar/articulo', 'ArticuloController@validar');
 
-// RUTAS PARA PERSONA
+// RUTAS PARA CLIENTE
 Route::get('/cliente', 'ClienteController@index');
 Route::post('/cliente/registrar', 'ClienteController@store');
 Route::put('/cliente/actualizar', 'ClienteController@update');
+
+// RUTAS PARA PROVEEDOR
+Route::get('/proveedor', 'ProveedorController@index');
+Route::post('/proveedor/registrar', 'ProveedorController@store');
+Route::put('/proveedor/actualizar', 'ProveedorController@update');
