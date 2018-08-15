@@ -52,12 +52,19 @@ Route::group(['middleware'=>['auth']], function () {
         Route::put('/articulo/desactivar', 'ArticuloController@desactivar');
         Route::put('/articulo/activar', 'ArticuloController@activar');
         Route::post('/validar/articulo', 'ArticuloController@validar');
+        Route::get('/articulo/buscarArticulo', 'ArticuloController@buscarArticulo');
 
 
         // RUTAS PARA PROVEEDOR
         Route::get('/proveedor', 'ProveedorController@index');
         Route::post('/proveedor/registrar', 'ProveedorController@store');
         Route::put('/proveedor/actualizar', 'ProveedorController@update');
+        Route::get('/proveedor/selectProveedor', 'ProveedorController@selectProveedor');
+
+        // RUTAS PARA INRESOS
+        Route::get('/ingreso', 'IngresoController@index');
+        Route::post('/ingreso/registrar', 'IngresoController@store');
+        Route::put('/ingreso/desactivar', 'IngresoController@desactivar');
     });
 
 
@@ -86,17 +93,24 @@ Route::group(['middleware'=>['auth']], function () {
         Route::put('/articulo/desactivar', 'ArticuloController@desactivar');
         Route::put('/articulo/activar', 'ArticuloController@activar');
         Route::post('/validar/articulo', 'ArticuloController@validar');
+        Route::get('/articulo/buscarArticulo', 'ArticuloController@buscarArticulo');
 
 
         // RUTAS PARA PROVEEDOR
         Route::get('/proveedor', 'ProveedorController@index');
         Route::post('/proveedor/registrar', 'ProveedorController@store');
         Route::put('/proveedor/actualizar', 'ProveedorController@update');
+        Route::get('/proveedor/selectProveedor', 'ProveedorController@selectProveedor');
 
         // RUTAS PARA CLIENTE
         Route::get('/cliente', 'ClienteController@index');
         Route::post('/cliente/registrar', 'ClienteController@store');
         Route::put('/cliente/actualizar', 'ClienteController@update');
+
+        // RUTAS PARA INRESOS
+        Route::get('/ingreso', 'IngresoController@index');
+        Route::post('/ingreso/registrar', 'IngresoController@store');
+        Route::put('/ingreso/desactivar', 'IngresoController@desactivar');
 
         // RUTAS PARA ROLES
         Route::get('/rol', 'RolController@index');

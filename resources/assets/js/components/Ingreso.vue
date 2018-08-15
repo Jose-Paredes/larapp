@@ -1,0 +1,675 @@
+<template>
+    <main class="main">
+        <!-- Breadcrumb -->
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Escritorio</a></li>
+        </ol>
+        <div class="container-fluid">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-align-justify"></i> Ingresos
+                    <button type="button" @click="mostrarDetalle()" class="btn btn-secondary">
+                        <i class="icon-plus"></i>&nbsp;Nuevo
+                    </button>
+                </div>
+                <!--Listado de ingresos-->
+                <template v-if="listado">
+                    <div class="card-body">
+                        <div class="form-group row">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <select class="form-control col-md-3" v-model="criterio">
+                                        <option value="tipo_comprobante">Tipo Comprobante</option>
+                                        <option value="num_comprobante">Numero Comprobante</option>
+                                        <option value="fecha_hora">Fecha-Hora</option>
+                                    </select>
+                                    <input type="text" v-model="buscar" @keyup.enter="listarIngreso(1, buscar, criterio)" class="form-control" placeholder="Texto a buscar">
+                                    <button type="submit" @click="listarIngreso(1, buscar, criterio)" class="btn btn-primary"><i class="fa fa-search"></i> Buscar</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-sm">
+                            <thead>
+                            <tr>
+                                <th>Opciones</th>
+                                <th>Usuario</th>
+                                <th>Proveedor</th>
+                                <th>Tipo Comprobante</th>
+                                <th>Serie Comprobante</th>
+                                <th>Numero Comprobante</th>
+                                <th>Fecha Hora</th>
+                                <th>Total</th>
+                                <th>Impuesto</th>
+                                <th>Estado</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr v-for="ingreso in arrayIngreso" :key="ingreso.id">
+                                <td>
+                                    <button type="button" @click="abrirModal('ingreso', 'actualizar', ingreso)" class="btn btn-success btn-sm">
+                                        <i class="icon-eye"></i>
+                                    </button>&nbsp;&nbsp;
+                                    <template v-if="ingreso.estado==='Registrado'"> <!-- Si la condicion es 1(activo), mostrar boton desactivar -->
+                                        <button type="button" class="btn btn-danger btn-sm" @click="desactivarIngreso(ingreso.id)">
+                                            <i class="icon-trash"></i>
+                                        </button>
+                                    </template>
+                                </td>
+                                <td v-text="ingreso.usuario"></td>
+                                <td v-text="ingreso.nombre"></td> <!--Nombre del proveedor-->
+                                <td v-text="ingreso.tipo_comprobante"></td>
+                                <td v-text="ingreso.serie_comprobante"></td>
+                                <td v-text="ingreso.num_comprobante"></td>
+                                <td v-text="ingreso.fecha_hora"></td>
+                                <td v-text="ingreso.total"></td>
+                                <td v-text="ingreso.impuesto"></td>
+                                <td v-text="ingreso.estado"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                        <nav>
+                            <ul class="pagination">
+                                <li class="page-item" v-if="pagination.current_page > 1"> <!--Si la pag actual es mayor a 1. Solo muestra boton si estamos desde la pag 2 en adelante-->
+                                    <a class="page-link" href="#" @click.prevent="cambiarPagina(pagination.current_page - 1, buscar, criterio)">Ant</a> <!--Con cada click, restamos 1 a la pag actual-->
+                                </li>
+                                <!--Aca usamos la prop computada
+                                Mostramos todos los nros dentro de la seccion de paginacion
+                                -->
+                                <li class="page-item" v-for="page in pagesNumber" :key="page" :class="[page === isActived? 'active': '']"> <!--El boton nos inidica que estamos en la pag actual-->
+                                    <a class="page-link" href="#" @click.prevent="cambiarPagina(page, buscar, criterio)" v-text="page"></a>
+                                </li>
+                                <li class="page-item" v-if="pagination.current_page < pagination.last_page"> <!--Mientras la pag actual sea menor que la ultima pag, puede mostrar la pag siguiente -->
+                                    <a class="page-link" href="#" @click.prevent="cambiarPagina(pagination.current_page + 1, buscar, criterio)">Sig</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                    <!--Fin Listado de ingresos-->
+                </template>
+                <template v-else>
+                    <!--Detalle ingresos-->
+                    <div class="card-body">
+                        <div class="form-group row border">
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    <label for="">Proveedor(*)</label>
+                                    <v-select
+                                    :on-search="selectProveedor"
+                                    label="nombre"
+                                    :options="arrayProveedor"
+                                    placeholder="Buscar Proveedores..."
+                                    :onChange="getDatosProveedor"
+                                    >
+                                        <template slot="no-options">
+                                            Lo sentimos, no hay opciones coincidentes
+                                        </template>
+
+                                    </v-select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="">Impuesto(*)</label>
+                                <input type="text" class="form-control" v-model="impuesto">
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Tipo Comprobante(*)</label>
+                                    <select class="form-control" v-model="tipo_comprobante">
+                                        <option value="0">Seleccione</option>
+                                        <option value="BOLETA">Boleta</option>
+                                        <option value="FACTURA">Factura</option>
+                                        <option value="TICKET">Ticket</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Serie Comprobante</label>
+                                    <input type="text" class="form-control" v-model="serie_comprobante" placeholder="000X">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Numero Comprobante(*)</label>
+                                    <input type="text" class="form-control" v-model="num_comprobante" placeholder="000XX">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row border">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Articulo</label>
+                                    <div class="form-inline">
+                                        <input type="text" class="form-control" v-model="codigo" @keyup.enter="buscarArticulo()" placeholder="Ingrese articulo">
+                                        <button class="btn btn-primary">...</button>
+                                        <input type="text" readonly class="form-control" v-model="articulo">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Precio</label>
+                                    <input type="number" value="0" step="any" class="form-control" v-model="precio">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Cantidad</label>
+                                    <input type="number" value="0" class="form-control" v-model="cantidad">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <button class="btn btn-success form-control btnagregar"><i class="icon-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row border">
+                            <!--Listado de articulos agregados al detalle-->
+                            <div class="table-responsive col-md-12">
+                                <table class="table table-bordered table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Opciones</th>
+                                            <th>Articulo</th>
+                                            <th>Precio</th>
+                                            <th>Cantidad</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <button class="btn btn-danger btn-sm">
+                                                    <i class="icon-close"></i>
+                                                </button>
+                                            </td>
+                                            <td>Articulo N</td>
+                                            <td>
+                                                <input type="number" value="3" class="form-control">
+                                            </td>
+                                            <td>
+                                                <input type="number" value="2" class="form-control">
+                                            </td>
+                                            <td>
+                                                $ 6.00
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <button class="btn btn-danger btn-sm">
+                                                    <i class="icon-close"></i>
+                                                </button>
+                                            </td>
+                                            <td>Articulo N</td>
+                                            <td>
+                                                <input type="number" value="3" class="form-control">
+                                            </td>
+                                            <td>
+                                                <input type="number" value="2" class="form-control">
+                                            </td>
+                                            <td>
+                                                $ 6.00
+                                            </td>
+                                        </tr>
+                                        <tr style="background-color: #CEECF5;">
+                                            <td colspan="4" align="right"><strong>Total Parcial:</strong></td>
+                                            <td>$ 5</td>
+                                        </tr>
+                                        <tr style="background-color: #CEECF5;">
+                                            <td colspan="4" align="right"><strong>Total Impuesto:</strong></td>
+                                            <td>$ 1</td>
+                                        </tr>
+                                        <tr style="background-color: #CEECF5;">
+                                            <td colspan="4" align="right"><strong>Total Neto:</strong></td>
+                                            <td>$ 6</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-12">
+                                <button type="button" class="btn btn-secondary" @click="cerrarDetalle()">Cerrar</button>
+                                <button type="button" class="btn btn-primary" @click="registrarIngreso()">Registrar Compra</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!--Fin Detalle ingresos-->
+                </template>
+            </div>
+            <!-- Fin ejemplo de tabla Listado -->
+        </div>
+        <!--Inicio del modal agregar/actualizar-->
+        <!--bindin {{}} anexa un resultado al attr class-->
+        <!--El modal anexara la clase mostrar si la variable modal es true-->
+        <div class="modal fade" tabindex="-1" :class="{'mostrar' : modal}" role="dialog" aria-labelledby="myModalLabel" style="display: none;" aria-hidden="true">
+            <div class="modal-dialog modal-primary modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" v-text="tituloModal"></h4>
+                        <button type="button" class="close" @click="cerrarModal()" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="cerrarModal()">Cerrar</button>
+                        <button type="button" v-if="tipoAccion===1" class="btn btn-primary" @click="registrarPersona()">Guardar</button>
+                        <button type="button" v-if="tipoAccion===2" class="btn btn-primary" @click="actualizarPersona()">Actualizar</button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <!--Fin del modal-->
+    </main>
+</template>
+<!--
+    Axios es una biblioteca que nos permite revisar petiociones http desde el browser
+    Transforma automaticamente las peticiones en json
+-->
+<script>
+    // Importamos el componente vue-select
+    import vSelect from 'vue-select';
+    export default {
+        data() {
+            return {
+                // Variables que vamos a utilizar
+                ingreso_id: 0,
+                idproveedor: 0,
+                nombre: '',
+                tipo_comprobante: 'BOLETA',
+                serie_comprobante: '',
+                num_comprobante: '',
+                impuesto: 0.18,
+                total: 0.0,
+                arrayIngreso: [],
+                arrayDetalle: [],
+                arrayProveedor: [],
+                listado: 1, // Almacena si se visualiza o no el listado
+                modal: 0,    // Indica si se muestra/oculta el modal
+                tituloModal: '',
+                tipoAccion: 0,
+                errorIngreso: 0,
+                errorMostrarMsjIngreso: [],
+                pagination: {
+                    'total'         : 0,    // Total de registros
+                    'current_page'  : 0,    // La pag actual
+                    'per_page'      : 0,    // Nros de reg por pag
+                    'last_page'     : 0,    // La ultima pag
+                    'from'          : 0,    // Desde la pag
+                    'to'            : 0,    // Hasta la pag
+                },
+                offset: 3,
+                criterio: 'num_comprobante', // Indica cual es el campo de busqueda
+                buscar: '',
+                arrayArticulo: [],
+                idarticulo: 0,
+                codigo: '',
+                articulo: '',   // Nombre del articulo
+                precio: 0,
+                cantidad: 0
+            }
+        },
+        components: {
+            vSelect
+        },
+        // Propiedad computada
+        computed : {
+            isActived: function () {
+                // Retornamos la pag actual
+                return this.pagination.current_page;
+            },
+            // Calcula el nro de elementos de la paginacion
+            pagesNumber: function () {
+                // Si la pag es dif al ultimo elemento de la pag actual
+                if (!this.pagination.to) {
+                    return [];
+                }
+
+                // Almacenamos la resta de la pag actual y el offset
+                let from = this.pagination.current_page - this.offset;
+                // Evaluamos si la pag actual es 0 o menos, se establece la pag actual a 1
+                if (from < 1) {
+                    from = 1;
+                }
+
+                // Almacena la suma de la pag actual + el doble de offset
+                let to = from + (this.offset * 2);
+                // Si to es mayor o igual que la ultima pag, establemos ese valor a to
+                if (to >= this.pagination.last_page) {
+                    to = this.pagination.last_page;
+                }
+
+                let pagesArray = [];
+                // Mientras la pag actual se menor o igual a la ultima pag
+                while (from <= to) {
+                    pagesArray.push(from);
+                    from++;
+                }
+
+                return pagesArray;
+            }
+        },
+        methods : {
+          // Metodo que retornara el listado de registros
+            listarIngreso(page, buscar, criterio) {
+                let me = this;
+                var url = '/ingreso?page='+page+'&buscar='+buscar+'&criterio='+criterio;
+                axios.get(url).then(function (response) { // todo lo que nos devuelve el index del controlador
+                    var respuesta = response.data;
+                        // Si toudo sale bien
+                        me.arrayIngreso = respuesta.ingresos.data;
+                        me.pagination = respuesta.pagination;
+                    })
+                    .catch(function (error) {
+                        // atrapamos el error
+                        console.log(error);
+                    })
+            },
+            selectProveedor(search, loading) {
+                let me = this;
+                loading(true)
+
+                var url = '/proveedor/selectProveedor?filtro='+search;
+                axios.get(url).then(function (response) { // todo lo que nos devuelve el controlador
+                    let respuesta = response.data;
+                    q: search
+                    me.arrayProveedor = respuesta.proveedores;
+                    loading(false)
+                }).catch(function (error) {
+                        // atrapamos el error
+                        console.log(error);
+                })
+            },
+            getDatosProveedor(val1) {   // Almacena toda la opcion del proveedor seleccionado
+                let me = this;
+                me.loading = true;
+                me.idproveedor = val1.id;
+            },
+            buscarArticulo() {
+                let me = this;
+                var url = '/articulo/buscarArticulo?filtro='+me.codigo; // Filtramos el art que coincide con el cod barra
+
+                axios.get(url).then(function (response) {
+                    var respuesta = response.data;
+                    me.arrayArticulo = respuesta.articulos;
+
+                    if(me.arrayArticulo.length>0) { // Se encontro un registro
+                        me.articulo   = me.arrayArticulo[0]['nombre'];
+                        me.idarticulo = me.arrayArticulo[0]['id'];
+                    } else {
+                        me.articulo    = 'No existe articulo';
+                        me.idarticulo  = 0;
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            cambiarPagina(page, buscar, criterio) {
+                // Recibe de parametro el nro de la pag a mostrar
+                let me = this;
+                // Actualiza la pag actual
+                me.pagination.current_page = page;
+                // Envia la peticion para visualizar la data de esa pag
+                me.listarIngreso(page, buscar, criterio);
+            },
+            registrarPersona() {
+                if (this.validarPersona()) {
+                    // En caso de que haya errores
+                    return;
+                }
+
+               let me = this; // Hace ref a este mismo archivo
+                // Mediante AJAX y AXIOS, recibe 2 parametros; ruta + parametros
+                axios.post('/user/registrar', {
+                    'nombre': this.nombre,
+                    'tipo_comprobante': this.tipo_comprobante,
+                    'serie_comprobante': this.serie_comprobante,
+                    'direccion': this.direccion,
+                    'telefono': this.telefono,
+                    'email': this.email,
+                    'usuario': this.usuario,
+                    'password': this.password,
+                    'idrol': this.idrol
+                }).then(function (response) {
+                    me.cerrarModal();
+                    me.listarIngreso(1, '', 'nombre');
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            actualizarPersona() {
+                if (this.validarPersona()) {  // Validamos campos obligatorios
+                    // En caso de que haya errores
+                    return;
+                }
+
+                let me = this; // Hace ref a este mismo archivo
+                // AXIOS, recibe 2 parametros; ruta + parametros
+                axios.put('/user/actualizar', {
+                    'nombre': this.nombre,
+                    'tipo_comprobante': this.tipo_comprobante,
+                    'serie_comprobante': this.serie_comprobante,
+                    'direccion': this.direccion,
+                    'telefono': this.telefono,
+                    'email': this.email,
+                    'usuario': this.usuario,
+                    'password': this.password,
+                    'idrol': this.idrol,
+                    'id': this.ingreso_id
+                }).then(function (response) { // Si todo va bien
+                    me.cerrarModal();
+                    // me.listarIngreso(1, this.buscar, 'nombre');
+                }).catch(function (error) { // Si hay errores
+                    console.log(error);
+                });
+                me.listarIngreso(1, this.buscar, this.criterio);
+            },
+            validarPersona() {
+                this.errorIngreso = 0;
+                this.errorMostrarMsjIngreso = [];
+
+                // Verificamos si algun campo esta vacio
+                if(!this.nombre) this.errorMostrarMsjIngreso.push("El nombre de la persona no puede estar vacio");
+                if(!this.usuario) this.errorMostrarMsjIngreso.push("El nombre del usuario no puede estar vacio");
+                if(!this.password) this.errorMostrarMsjIngreso.push("El password del usuario no puede estar vacio");
+                if(this.idrol===0) this.errorMostrarMsjIngreso.push("Debes seleccionar un rol para el usuario");
+
+                // Evaluamos si tenemos errores
+                if(this.errorMostrarMsjIngreso.length) this.errorIngreso = 1;
+
+                return this.errorIngreso;
+            },
+            mostrarDetalle() {
+                this.listado = 0;
+            },
+            cerrarDetalle() {
+                this.listado = 1;
+            },
+            cerrarModal() {
+                this.modal = 0;
+                this.tituloModal = '';
+                this.nombre = '';
+                this.tipo_comprobante = 'DNI';
+                this.serie_comprobante = '';
+                this.direccion = '';
+                this.telefono = '';
+                this.email = '';
+                this.usuario = '';
+                this.password = '';
+                this.idrol = 0;
+                this.errorIngreso = 0;
+                this.errorMostrarMsjIngreso = [];
+            },
+            abrirModal(modelo, accion, data = []) {
+                this.selectRol();
+                switch (modelo) {
+                    case "persona": {
+                        switch (accion) {
+                            case 'registrar': {
+                                this.modal = 1;
+                                this.tituloModal    = 'REGISTRAR USUARIO';
+                                this.nombre         = '';
+                                this.tipo_comprobante = 'DNI';
+                                this.serie_comprobante  = '';
+                                this.direccion      = '';
+                                this.telefono       = '';
+                                this.email          = '';
+                                this.usuario        = '';
+                                this.password       = '';
+                                this.idrol          = 0;
+                                this.tipoAccion     = 1;
+                                break;
+                            }
+                            case 'actualizar': {
+                                //console.log(data);
+                                this.modal = 1;
+                                this.tituloModal    = 'ACTUALIZAR USUARIO';
+                                this.tipoAccion     = 2;
+                                this.ingreso_id     = data['id'];
+                                this.nombre         = data['nombre'];
+                                this.tipo_comprobante = data['tipo_comprobante'];
+                                this.serie_comprobante  = data['serie_comprobante'];
+                                this.direccion      = data['direccion'];
+                                this.telefono       = data['telefono'];
+                                this.email          = data['email'];
+                                this.usuario        = data['usuario'];
+                                this.password       = data['password'];
+                                this.idrol          = data['idrol'];
+                                break;
+                            }
+                        }
+                    }
+                }
+            },
+            desactivarUsuario(id) {
+                const swalWithBootstrapButtons = swal.mixin({
+                    confirmButtonClass: 'btn btn-success',
+                    cancelButtonClass: 'btn btn-danger',
+                    buttonsStyling: false,
+                });
+
+                swalWithBootstrapButtons({
+                    title: 'Estas seguro de desactivar este usuario?',
+                    //text: "You won't be able to revert this!",
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, continuar!',
+                    cancelButtonText: 'No, cancelar!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.value) {
+                        // Utilizamos axios para realizar una petiocion http para desactivar
+                        let me = this; // Hace ref a este mismo archivo
+                        // AXIOS, recibe 2 parametros; ruta + parametros
+                        axios.put('/user/desactivar', {
+                            'id': id
+                        }).then(function (response) { // Si todo va bien
+                            me.listarIngreso(1, '', 'nombre');
+                            swalWithBootstrapButtons(
+                                'Desactivado!',
+                                'El registro a sido desactivado con exito.',
+                                'success'
+                            )
+                        }).catch(function (error) { // Si hay errores
+                            console.log(error);
+                        });
+                    } else if (
+                        // Read more about handling dismissals
+                    result.dismiss === swal.DismissReason.cancel
+                    ) {
+                        // Mensaje cuando clickeamos en CANCELAR
+                        // swalWithBootstrapButtons(
+                        //     'Cancelled',
+                        //     'Your imaginary file is safe :)',
+                        //     'error'
+                        // )
+                    }
+                })
+            },
+            activarUsuario(id) {
+                const swalWithBootstrapButtons = swal.mixin({
+                    // Comente para separar los botones, no carga las clases de bootstrap
+                    //confirmButtonClass: 'btn btn-success',
+                    //cancelButtonClass: 'btn btn-danger',
+                    //buttonsStyling: false,
+                });
+
+                swalWithBootstrapButtons({
+                    title: 'Estas seguro de activar este usuario?',
+                    //text: "You won't be able to revert this!",
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, continuar!',
+                    cancelButtonText: 'No, cancelar!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.value) {
+                        // Utilizamos axios para realizar una peticion http para activar
+                        let me = this; // Hace ref a este mismo archivo
+                        // AXIOS, recibe 2 parametros; ruta + parametros
+                        axios.put('/user/activar', {
+                            'id': id
+                        }).then(function (response) { // Si todo va bien
+                            me.listarIngreso(1, '', 'nombre');
+                            swalWithBootstrapButtons(
+                                'Activado!',
+                                'El registro a sido activado con exito.',
+                                'success'
+                            )
+                        }).catch(function (error) { // Si hay errores
+                            console.log(error);
+                        });
+                    } else if (
+                        // Read more about handling dismissals
+                    result.dismiss === swal.DismissReason.cancel
+                    ) {
+                        // Aqui muestra mensaje cuando clickeamos en CANCELAR
+                        // swalWithBootstrapButtons(
+                        //     'Cancelled',
+                        //     'Your imaginary file is safe :)',
+                        //     'error'
+                        // )
+                    }
+                })
+            }
+        },
+        mounted() {
+            // Hacemos referencia a los metodos creados
+            this.listarIngreso(1, this.buscar, this.criterio);
+        }
+    }
+</script>
+<style>
+    .modal-content {
+        width: 100% !important;
+        position: absolute !important;
+    }
+    .mostrar {
+        display: list-item !important;
+        opacity: 1 !important;
+        position: absolute !important;
+        background-color: #3c29297a !important;
+    }
+    .div-error {
+        display: flex;
+        justify-content: center;
+    }
+    .text-error {
+        color: red !important;
+        font-weight: bold;
+    }
+
+    @media (min-width: 600px) {
+        .btnagregar {
+            margin-top: 2rem;
+        }
+    }
+</style>
