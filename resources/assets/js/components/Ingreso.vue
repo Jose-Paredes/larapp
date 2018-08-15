@@ -140,7 +140,7 @@
                         <div class="form-group row border">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Articulo</label>
+                                    <label>Articulo <span style="color: red;" v-show="idarticulo===0">(*SELECCIONE)</span></label>
                                     <div class="form-inline">
                                         <input type="text" class="form-control" v-model="codigo" @keyup.enter="buscarArticulo()" placeholder="Ingrese articulo">
                                         <button class="btn btn-primary">...</button>
@@ -150,19 +150,19 @@
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label>Precio</label>
+                                    <label>Precio<span style="color: red;" v-show="precio===0">(*SELECCIONE)</span></label>
                                     <input type="number" value="0" step="any" class="form-control" v-model="precio">
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label>Cantidad</label>
+                                    <label>Cantidad<span style="color: red;" v-show="cantidad===0">(*SELECCIONE)</span></label>
                                     <input type="number" value="0" class="form-control" v-model="cantidad">
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <button class="btn btn-success form-control btnagregar"><i class="icon-plus"></i></button>
+                                    <button @click="agregarDetalle()" class="btn btn-success form-control btnagregar"><i class="icon-plus"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -179,39 +179,22 @@
                                             <th>Subtotal</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <tr>
+                                    <tbody v-if="arrayDetalle.length">
+                                        <tr v-for="detalle in arrayDetalle" :key="detalle.id">
                                             <td>
                                                 <button class="btn btn-danger btn-sm">
                                                     <i class="icon-close"></i>
                                                 </button>
                                             </td>
-                                            <td>Articulo N</td>
+                                            <td v-text="detalle.articulo"></td>
                                             <td>
-                                                <input type="number" value="3" class="form-control">
+                                                <input v-model="detalle.precio" type="number" value="3" class="form-control">
                                             </td>
                                             <td>
-                                                <input type="number" value="2" class="form-control">
+                                                <input v-model="detalle.cantidad" type="number" value="2" class="form-control">
                                             </td>
                                             <td>
-                                                $ 6.00
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button class="btn btn-danger btn-sm">
-                                                    <i class="icon-close"></i>
-                                                </button>
-                                            </td>
-                                            <td>Articulo N</td>
-                                            <td>
-                                                <input type="number" value="3" class="form-control">
-                                            </td>
-                                            <td>
-                                                <input type="number" value="2" class="form-control">
-                                            </td>
-                                            <td>
-                                                $ 6.00
+                                                {{ detalle.precio*detalle.cantidad }}
                                             </td>
                                         </tr>
                                         <tr style="background-color: #CEECF5;">
@@ -225,6 +208,13 @@
                                         <tr style="background-color: #CEECF5;">
                                             <td colspan="4" align="right"><strong>Total Neto:</strong></td>
                                             <td>$ 6</td>
+                                        </tr>
+                                    </tbody>
+                                    <tbody v-else>
+                                        <tr>
+                                            <td colspan="5">
+                                                No hay articulos agregados
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -419,6 +409,45 @@
                 me.pagination.current_page = page;
                 // Envia la peticion para visualizar la data de esa pag
                 me.listarIngreso(page, buscar, criterio);
+            },
+            encuentra(id) {
+                var sw = 0;
+                for (var i=0;i<this.arrayDetalle.length;i++) {  // Recorre todos los indices del detalle
+                    if (this.arrayDetalle[i].idarticulo===id) { // true, si ya se encuentra agregado y actualiza los detalles
+                        this.arrayDetalle[i].cantidad=parseFloat(this.arrayDetalle[i].cantidad)+parseFloat(this.cantidad);
+                        this.arrayDetalle[i].precio=this.precio;
+                        sw = true;
+                    }
+                }
+                return sw;
+            },
+            agregarDetalle() {
+                let me = this;
+
+                // Valida datos
+                if(me.idarticulo===0 || me.cantidad===0 || me.precio===0) {
+                // No agregamos nada
+                } else {
+                    if(me.encuentra(me.idarticulo)) {
+                        /*swal({
+                            type: 'warning',
+                            title: 'ATENCION',
+                            text: 'El articulo ya se encuentra agregado!'
+                        })*/
+                    } else {
+                        me.arrayDetalle.push({
+                            idarticulo: me.idarticulo,
+                            articulo: me.articulo,
+                            cantidad: me.cantidad,
+                            precio: me.precio
+                        });
+                        me.codigo = "";
+                        me.idarticulo = 0;
+                        me.articulo = "";
+                        me.cantidad = 0;
+                        me.precio = 0;
+                    }
+                }
             },
             registrarPersona() {
                 if (this.validarPersona()) {
