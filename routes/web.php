@@ -11,10 +11,10 @@
 |
 */
 
-Route::get('/', function () {
+Route::get('/main', function () {
     // Si la uri es la raiz, muestra el contenido
     return view('contenido/contenido');
-});
+})->name('main'); // Alias
 
 // Cada vez que se ingresa a esta uri, hacemos una peticion al
 // controlador y a la funcion index
@@ -58,3 +58,8 @@ Route::put('/user/desactivar', 'UserController@desactivar');
 Route::put('/user/activar', 'UserController@activar');
 //Route::post('/validar/users', 'ArticuloController@validar');
 
+// MOSTRAMOS EL FORMULARIO DE LOGUEO
+Route::get('/', 'Auth\LoginController@showLoginForm');
+Route::post('/login', 'Auth\LoginController@login')->name('login'); // Con alias login
+
+Route::get('/home', 'HomeController@index')->name('home');
