@@ -119,7 +119,7 @@
     </div>
     <div id="datos">
         <p id="encabezado">
-            <b>IncanatoIT</b><br>José Gálvez 1368, Chongoyape - Chiclayo, Perú<br>Telefono:(+51)931742904<br>Email:jcarlos.ad7@gmail.com
+            <b>Sistema de Ventas</b><br>Asuncion, Paraguay<br>Email: consultas@larapp.com
         </p>
     </div>
     <div id="fact">
