@@ -62,10 +62,12 @@ Route::group(['middleware'=>['auth']], function () {
         Route::put('/proveedor/actualizar', 'ProveedorController@update');
         Route::get('/proveedor/selectProveedor', 'ProveedorController@selectProveedor');
 
-        // RUTAS PARA INRESOS
+        // RUTAS PARA INGRESOS
         Route::get('/ingreso', 'IngresoController@index');
         Route::post('/ingreso/registrar', 'IngresoController@store');
         Route::put('/ingreso/desactivar', 'IngresoController@desactivar');
+        Route::get('/ingreso/obtenerCabecera', 'IngresoController@obtenerCabecera');
+        Route::get('/ingreso/obtenerDetalles', 'IngresoController@obtenerDetalles');
     });
 
 
@@ -109,10 +111,12 @@ Route::group(['middleware'=>['auth']], function () {
         Route::post('/cliente/registrar', 'ClienteController@store');
         Route::put('/cliente/actualizar', 'ClienteController@update');
 
-        // RUTAS PARA INRESOS
+        // RUTAS PARA INGRESOS
         Route::get('/ingreso', 'IngresoController@index');
         Route::post('/ingreso/registrar', 'IngresoController@store');
         Route::put('/ingreso/desactivar', 'IngresoController@desactivar');
+        Route::get('/ingreso/obtenerCabecera', 'IngresoController@obtenerCabecera');
+        Route::get('/ingreso/obtenerDetalles', 'IngresoController@obtenerDetalles');
 
         // RUTAS PARA ROLES
         Route::get('/rol', 'RolController@index');

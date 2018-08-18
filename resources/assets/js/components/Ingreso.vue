@@ -13,7 +13,7 @@
                     </button>
                 </div>
                 <!--Listado de ingresos-->
-                <template v-if="listado">
+                <template v-if="listado===1">
                     <div class="card-body">
                         <div class="form-group row">
                             <div class="col-md-6">
@@ -47,7 +47,7 @@
                             <tbody>
                             <tr v-for="ingreso in arrayIngreso" :key="ingreso.id">
                                 <td>
-                                    <button type="button" @click="abrirModal('ingreso', 'actualizar', ingreso)" class="btn btn-success btn-sm">
+                                    <button type="button" @click="verIngreso(ingreso.id)" class="btn btn-success btn-sm">
                                         <i class="icon-eye"></i>
                                     </button>&nbsp;&nbsp;
                                     <template v-if="ingreso.estado==='Registrado'"> <!-- Si la condicion es 1(activo), mostrar boton desactivar -->
@@ -64,7 +64,15 @@
                                 <td v-text="ingreso.fecha_hora"></td>
                                 <td v-text="ingreso.total"></td>
                                 <td v-text="ingreso.impuesto"></td>
-                                <td v-text="ingreso.estado"></td>
+                                <!--<td v-text="ingreso.estado"></td>-->
+                                <td>
+                                    <div v-if="ingreso.estado==='Registrado'">
+                                        <span class="badge badge-success">Registrado</span>
+                                    </div>
+                                    <div v-else>
+                                        <span class="badge badge-danger">Anulado</span>
+                                    </div>
+                                </td>
                             </tr>
                             </tbody>
                         </table>
@@ -88,7 +96,7 @@
                     </div>
                     <!--Fin Listado de ingresos-->
                 </template>
-                <template v-else>
+                <template v-else-if="listado===0">
                     <!--Detalle ingresos-->
                     <div class="card-body">
                         <div class="form-group row border">
@@ -239,6 +247,97 @@
                     </div>
                     <!--Fin Detalle ingresos-->
                 </template>
+                <!-- ./ Fin Listado /. -->
+                <!-- ./ Ver detalles de ingreso /. -->
+                <template v-else-if="listado===2">
+                    <!--Detalle ingresos-->
+                    <div class="card-body">
+                        <div class="form-group row border">
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    <label for="">Proveedor</label>
+                                    <p v-text="proveedor"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="">Impuesto</label>
+                                <p v-text="impuesto"></p>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Tipo Comprobante</label>
+                                    <p v-text="tipo_comprobante"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Serie Comprobante</label>
+                                    <p v-text="serie_comprobante"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Numero Comprobante</label>
+                                    <p v-text="num_comprobante"></p>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="form-group row border">
+                            <!--Listado de articulos agregados al detalle-->
+                            <div class="table-responsive col-md-12">
+                                <table class="table table-bordered table-striped table-sm">
+                                    <thead>
+                                    <tr>
+                                        <th>Articulo</th>
+                                        <th>Precio</th>
+                                        <th>Cantidad</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody v-if="arrayDetalle.length">
+                                    <tr v-for="detalle in arrayDetalle" :key="detalle.id">
+                                        <td v-text="detalle.articulo"></td>
+                                        <td v-text="detalle.precio">
+                                        </td>
+                                        <td v-text="detalle.cantidad">
+                                        </td>
+                                        <td>
+                                            {{ detalle.precio*detalle.cantidad }}
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #CEECF5;">
+                                        <td colspan="3" align="right"><strong>Total Parcial:</strong></td>
+                                        <td>{{ totalParcial = (total-totalImpuesto).toFixed(2) }}</td>
+                                    </tr>
+                                    <tr style="background-color: #CEECF5;">
+                                        <td colspan="3" align="right"><strong>Total Impuesto:</strong></td>
+                                        <td>{{ totalImpuesto = ((total*impuesto)).toFixed(2) }}</td>
+                                    </tr>
+                                    <tr style="background-color: #CEECF5;">
+                                        <td colspan="3" align="right"><strong>Total Neto:</strong></td>
+                                        <td>{{ total }}</td>
+                                    </tr>
+                                    </tbody>
+                                    <tbody v-else>
+                                    <tr>
+                                        <td colspan="4">
+                                            No hay articulos agregados
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-12">
+                                <button type="button" class="btn btn-secondary" @click="cerrarDetalle()">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!--Fin Detalle ingresos-->
+                </template>
+                <!-- ./ Fin detalles de ingreso -->
             </div>
             <!-- Fin ejemplo de tabla Listado -->
         </div>
@@ -333,6 +432,7 @@
                 // Variables que vamos a utilizar
                 ingreso_id: 0,
                 idproveedor: 0,
+                proveedor: '',
                 nombre: '',
                 tipo_comprobante: 'BOLETA',
                 serie_comprobante: '',
@@ -622,6 +722,38 @@
             cerrarDetalle() {
                 this.listado = 1;
             },
+            verIngreso(id) {
+                let me = this;
+                me.listado = 2;
+                // Obtener los datos del ingreso
+                var arrayIngresoT = [];
+                var url = '/ingreso/obtenerCabecera?id='+id;
+                axios.get(url).then(function (response) { // todo lo que nos devuelve el index del controlador
+                    var respuesta = response.data;
+                    arrayIngresoT = respuesta.ingreso;
+                    me.proveedor = arrayIngresoT[0]['nombre'];
+                    me.tipo_comprobante = arrayIngresoT[0]['tipo_comprobante'];
+                    me.serie_comprobante = arrayIngresoT[0]['serie_comprobante'];
+                    me.num_comprobante = arrayIngresoT[0]['num_comprobante'];
+                    me.impuesto = arrayIngresoT[0]['impuesto'];
+                    me.total = arrayIngresoT[0]['total'];
+                })
+                    .catch(function (error) {
+                        // atrapamos el error
+                        console.log(error);
+                    })
+
+                // Obtener los datos del los detalles
+                var urlD = '/ingreso/obtenerDetalles?id='+id;
+                axios.get(urlD).then(function (response) { // todo lo que nos devuelve el index del controlador
+                    var respuesta = response.data;
+                    me.arrayDetalle = respuesta.detalles;
+                })
+                    .catch(function (error) {
+                        // atrapamos el error
+                        console.log(error);
+                    })
+            },
             cerrarModal() {
                 this.modal = 0;
                 this.tituloModal = '';
@@ -631,7 +763,7 @@
                 this.modal = 1;
                 this.tituloModal    = 'SELECCIONE UNO O VARIOS ARTICULOS';
             },
-            desactivarUsuario(id) {
+            desactivarIngreso(id) {
                 const swalWithBootstrapButtons = swal.mixin({
                     confirmButtonClass: 'btn btn-success',
                     cancelButtonClass: 'btn btn-danger',
@@ -639,7 +771,7 @@
                 });
 
                 swalWithBootstrapButtons({
-                    title: 'Estas seguro de desactivar este usuario?',
+                    title: 'Estas seguro de anular este ingreso?',
                     //text: "You won't be able to revert this!",
                     type: 'warning',
                     showCancelButton: true,
@@ -651,13 +783,13 @@
                         // Utilizamos axios para realizar una petiocion http para desactivar
                         let me = this; // Hace ref a este mismo archivo
                         // AXIOS, recibe 2 parametros; ruta + parametros
-                        axios.put('/user/desactivar', {
+                        axios.put('/ingreso/desactivar', {
                             'id': id
                         }).then(function (response) { // Si todo va bien
-                            me.listarIngreso(1, '', 'nombre');
+                            me.listarIngreso(1, '', 'num_comprobante');
                             swalWithBootstrapButtons(
-                                'Desactivado!',
-                                'El registro a sido desactivado con exito.',
+                                'Anulado!',
+                                'El registro a sido anulado con exito.',
                                 'success'
                             )
                         }).catch(function (error) { // Si hay errores
@@ -668,52 +800,6 @@
                     result.dismiss === swal.DismissReason.cancel
                     ) {
                         // Mensaje cuando clickeamos en CANCELAR
-                        // swalWithBootstrapButtons(
-                        //     'Cancelled',
-                        //     'Your imaginary file is safe :)',
-                        //     'error'
-                        // )
-                    }
-                })
-            },
-            activarUsuario(id) {
-                const swalWithBootstrapButtons = swal.mixin({
-                    // Comente para separar los botones, no carga las clases de bootstrap
-                    //confirmButtonClass: 'btn btn-success',
-                    //cancelButtonClass: 'btn btn-danger',
-                    //buttonsStyling: false,
-                });
-
-                swalWithBootstrapButtons({
-                    title: 'Estas seguro de activar este usuario?',
-                    //text: "You won't be able to revert this!",
-                    type: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Si, continuar!',
-                    cancelButtonText: 'No, cancelar!',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.value) {
-                        // Utilizamos axios para realizar una peticion http para activar
-                        let me = this; // Hace ref a este mismo archivo
-                        // AXIOS, recibe 2 parametros; ruta + parametros
-                        axios.put('/user/activar', {
-                            'id': id
-                        }).then(function (response) { // Si todo va bien
-                            me.listarIngreso(1, '', 'nombre');
-                            swalWithBootstrapButtons(
-                                'Activado!',
-                                'El registro a sido activado con exito.',
-                                'success'
-                            )
-                        }).catch(function (error) { // Si hay errores
-                            console.log(error);
-                        });
-                    } else if (
-                        // Read more about handling dismissals
-                    result.dismiss === swal.DismissReason.cancel
-                    ) {
-                        // Aqui muestra mensaje cuando clickeamos en CANCELAR
                         // swalWithBootstrapButtons(
                         //     'Cancelled',
                         //     'Your imaginary file is safe :)',

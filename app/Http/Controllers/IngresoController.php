@@ -51,6 +51,36 @@ class IngresoController extends Controller
         ];
     }
 
+    // Obtiene los datos de la cabecera de ingreso
+    public function obtenerCabecera(Request $request) {
+        if (!$request->ajax()) return redirect('/');
+
+        $id =  $request->id;
+
+        $ingreso = Ingreso::join('personas', 'ingresos.idproveedor', '=', 'personas.id')
+            ->join('users', 'ingresos.idusuario', '=', 'users.id')
+            ->select('ingresos.id', 'ingresos.tipo_comprobante', 'ingresos.serie_comprobante',
+                'ingresos.num_comprobante', 'ingresos.fecha_hora', 'ingresos.impuesto',
+                'ingresos.total', 'ingresos.estado', 'personas.nombre', 'users.usuario')
+            ->where('ingresos.id', '=', $id)
+            ->orderBy('ingresos.id', 'desc')->take(1)->get(); // Obtenemos un solo registro
+
+        return ['ingreso' => $ingreso];
+    }
+
+    public function obtenerDetalles(Request $request) {
+        if (!$request->ajax()) return redirect('/');
+
+        $id =  $request->id;
+
+        $detalles = DetalleIngreso::join('articulos', 'detalle_ingresos.idarticulo', '=', 'articulos.id')
+            ->select('detalle_ingresos.cantidad', 'detalle_ingresos.precio', 'articulos.nombre as articulo')
+            ->where('detalle_ingresos.idingreso', '=', $id)
+            ->orderBy('detalle_ingresos.id', 'desc')->get(); // Obtenemos un todos los detalles
+
+        return ['detalles' => $detalles];
+    }
+
     public function store(Request $request) // Recibimos el ingreso y los detalles
     {
         if (!$request->ajax()) return redirect('/');
