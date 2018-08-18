@@ -64,6 +64,29 @@ class ArticuloController extends Controller
         return ['articulos' => $articulos];
     }
 
+    public function listarArticuloVenta(Request $request)
+    {
+        if (!$request->ajax()) return redirect('/');
+
+        $buscar =  $request->buscar; // A travez de ajax recibimos el parametro, mediante el metodo get
+        $criterio =  $request->criterio;
+
+        if ($buscar == '') {
+            $articulos = Articulo::join('categorias', 'articulos.idcategoria', '=', 'categorias.id')
+                ->select('articulos.id', 'articulos.idcategoria', 'articulos.codigo', 'articulos.nombre', 'categorias.nombre as nombre_categoria', 'articulos.precio_venta', 'articulos.stock', 'articulos.descripcion', 'articulos.condicion')
+                ->where('articulos.stock', '>', '0') // Solo listar articulos con stock
+                ->orderBy('articulos.id', 'desc')->paginate(10); // Obtenemos todos los datos y Paguimos con Eloquent
+        } else {
+            $articulos = Articulo::join('categorias', 'articulos.idcategoria', '=', 'categorias.id')
+                ->select('articulos.id', 'articulos.idcategoria', 'articulos.codigo', 'articulos.nombre', 'categorias.nombre as nombre_categoria', 'articulos.precio_venta', 'articulos.stock', 'articulos.descripcion', 'articulos.condicion')
+                ->where('articulos.'.$criterio, 'like', '%'.$buscar.'%')
+                ->where('articulos.stock', '>', '0') // Solo listar articulos con stock
+                ->orderBy('articulos.id', 'desc')->paginate(10); // Obtenemos todos los datos y Paguimos con Eloquent
+        }
+
+        return ['articulos' => $articulos];
+    }
+
     public function buscarArticulo(Request $request) {
         if (!$request->ajax()) return redirect('/');
 
@@ -71,6 +94,19 @@ class ArticuloController extends Controller
 
         $articulos = Articulo::where('codigo', '=', $filtro)
             ->select('id', 'nombre')->orderBy('nombre', 'asc')->take(1)->get(); // Toma 1 solo registro
+
+        return ['articulos' => $articulos];
+    }
+
+    public function buscarArticuloVenta(Request $request) {
+        if (!$request->ajax()) return redirect('/');
+
+        $filtro = $request->filtro;
+
+        $articulos = Articulo::where('codigo', '=', $filtro)
+            ->select('id', 'nombre', 'stock', 'precio_venta')
+            ->where('stock', '>', '0') // Solo articulos que tengan stock
+            ->orderBy('nombre', 'asc')->take(1)->get(); // Toma 1 solo registro
 
         return ['articulos' => $articulos];
     }
