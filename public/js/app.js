@@ -35314,6 +35314,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -35404,6 +35407,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 // atrapamos el error
                 console.log(error);
             });
+        },
+        cargarPdf: function cargarPdf() {
+            window.open('http://127.0.0.1:8000/articulo/listarPdf', '_blank');
         },
         selectCategoria: function selectCategoria() {
             var me = this;
@@ -38417,6 +38423,23 @@ var render = function() {
             [
               _c("i", { staticClass: "icon-plus" }),
               _vm._v(" Nuevo\n                ")
+            ]
+          ),
+          _vm._v(" "),
+          _c(
+            "button",
+            {
+              staticClass: "btn btn-info",
+              attrs: { type: "button" },
+              on: {
+                click: function($event) {
+                  _vm.cargarPdf()
+                }
+              }
+            },
+            [
+              _c("i", { staticClass: "icon-doc" }),
+              _vm._v(" Reporte\n                ")
             ]
           )
         ]),
@@ -46801,6 +46824,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
 
 // Importamos el componente vue-select
 
@@ -46956,6 +46982,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 console.log(error);
             });
         },
+        pdfVenta: function pdfVenta(id) {
+            window.open('http://127.0.0.1:8000/venta/pdf/' + id + '.' + '_blank');
+            //http://127.0.0.1:8000/venta/pdf/1,_blank
+        },
         cambiarPagina: function cambiarPagina(page, buscar, criterio) {
             // Recibe de parametro el nro de la pag a mostrar
             var me = this;
@@ -47088,6 +47118,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 me.codigo = '';
                 me.descuento = 0;
                 me.arrayDetalle = [];
+                window.open('http://127.0.0.1:8000/venta/pdf/' + response.data.id + '.' + '_blank');
             }).catch(function (error) {
                 console.log(error);
             });
@@ -47407,6 +47438,20 @@ var render = function() {
                                       }
                                     },
                                     [_c("i", { staticClass: "icon-eye" })]
+                                  ),
+                                  _vm._v(" "),
+                                  _c(
+                                    "button",
+                                    {
+                                      staticClass: "btn btn-info btn-sm",
+                                      attrs: { type: "button" },
+                                      on: {
+                                        click: function($event) {
+                                          _vm.pdfVenta(venta.id)
+                                        }
+                                      }
+                                    },
+                                    [_c("i", { staticClass: "icon-doc" })]
                                   ),
                                   _vm._v(
                                     "  \n                                "

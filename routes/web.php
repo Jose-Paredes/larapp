@@ -54,6 +54,7 @@ Route::group(['middleware'=>['auth']], function () {
         Route::post('/validar/articulo', 'ArticuloController@validar');
         Route::get('/articulo/buscarArticulo', 'ArticuloController@buscarArticulo');
         Route::get('/articulo/listarArticulo', 'ArticuloController@listarArticulo');
+        Route::get('/articulo/listarPdf', 'ArticuloController@listarPdf')->name('articulos_pdf');
 
 
         // RUTAS PARA PROVEEDOR
@@ -85,6 +86,7 @@ Route::group(['middleware'=>['auth']], function () {
         Route::put('/venta/desactivar', 'VentaController@desactivar');
         Route::get('/venta/obtenerCabecera', 'VentaController@obtenerCabecera');
         Route::get('/venta/obtenerDetalles', 'VentaController@obtenerDetalles');
+        Route::get('/venta/pdf/{id}', 'VentaController@pdf')->name('venta_pdf');
 
         // RUTAS PARA ARTICULOS
         Route::get('/articulo/buscarArticuloVenta', 'ArticuloController@buscarArticuloVenta');
@@ -113,6 +115,7 @@ Route::group(['middleware'=>['auth']], function () {
         Route::get('/articulo/listarArticulo', 'ArticuloController@listarArticulo');
         Route::get('/articulo/buscarArticuloVenta', 'ArticuloController@buscarArticuloVenta');
         Route::get('/articulo/listarArticuloVenta', 'ArticuloController@listarArticuloVenta');
+        Route::get('/articulo/listarPdf', 'ArticuloController@listarPdf')->name('articulos_pdf');
 
 
         // RUTAS PARA PROVEEDOR
@@ -140,6 +143,7 @@ Route::group(['middleware'=>['auth']], function () {
         Route::put('/venta/desactivar', 'VentaController@desactivar');
         Route::get('/venta/obtenerCabecera', 'VentaController@obtenerCabecera');
         Route::get('/venta/obtenerDetalles', 'VentaController@obtenerDetalles');
+        Route::get('/venta/pdf/{id}', 'VentaController@pdf')->name('venta_pdf');
 
         // RUTAS PARA ROLES
         Route::get('/rol', 'RolController@index');

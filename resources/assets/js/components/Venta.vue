@@ -49,6 +49,9 @@
                                 <td>
                                     <button type="button" @click="verVenta(venta.id)" class="btn btn-success btn-sm">
                                         <i class="icon-eye"></i>
+                                    </button>
+                                    <button type="button" @click="pdfVenta(venta.id)" class="btn btn-info btn-sm">
+                                        <i class="icon-doc"></i>
                                     </button>&nbsp;&nbsp;
                                     <template v-if="venta.estado==='Registrado'"> <!-- Si la condicion es 1(activo), mostrar boton desactivar -->
                                         <button type="button" class="btn btn-danger btn-sm" @click="desactivarVenta(venta.id)">
@@ -600,6 +603,10 @@
                     console.log(error);
                 });
             },
+            pdfVenta(id) {
+                window.open('http://127.0.0.1:8000/venta/pdf/'+id+'.'+ '_blank');
+                //http://127.0.0.1:8000/venta/pdf/1,_blank
+            },
             cambiarPagina(page, buscar, criterio) {
                 // Recibe de parametro el nro de la pag a mostrar
                 let me = this;
@@ -727,6 +734,7 @@
                     me.codigo            = '';
                     me.descuento         = 0;
                     me.arrayDetalle      = [];
+                    window.open('http://127.0.0.1:8000/venta/pdf/'+response.data.id+'.'+ '_blank');
                 }).catch(function (error) {
                     console.log(error);
                 });
