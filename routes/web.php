@@ -24,6 +24,7 @@ Route::group(['middleware'=>['auth']], function () {
 
     Route::post('/logout', 'Auth\LoginController@logout')->name('logout');
     Route::get('/dashboard', 'DashboardController'); // Hacemos referencia a __invoke
+    Route::post('/notification/get', 'NotificationController@get');  // Notificaciones
 
     Route::get('/main', function () {
         // Si la uri es la raiz, muestra el contenido

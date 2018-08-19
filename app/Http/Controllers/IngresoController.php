@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Notifications\NotifyAdmin;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Ingreso;
 use App\DetalleIngreso;
+use App\User;
 
 class IngresoController extends Controller
 {
@@ -50,7 +52,6 @@ class IngresoController extends Controller
             'ingresos' => $ingresos
         ];
     }
-
     // Obtiene los datos de la cabecera de ingreso
     public function obtenerCabecera(Request $request) {
         if (!$request->ajax()) return redirect('/');
@@ -117,6 +118,28 @@ class IngresoController extends Controller
                 $detalle->cantidad   = $det['cantidad'];
                 $detalle->precio     = $det['precio'];
                 $detalle->save();
+            }
+
+            $fechaActual = date('Y-m-d');
+            $numVentas = DB::table('ventas')->whereDate('created_at', $fechaActual)->count(); // Obtiene la cantidad de ventas del dia
+            $numIngresos = DB::table('ingresos')->whereDate('created_at', $fechaActual)->count();
+
+            $arregloDatos = [
+                'ventas' => [
+                    'numero' => $numVentas,
+                    'msj'    => 'Ventas'
+                ],
+                'ingresos' => [
+                    'numero' => $numIngresos,
+                    'msj'    => 'Ingresos'
+                ]
+            ];
+
+            // Almacenamos todos los usuarios
+            $allUsers = User::all();
+
+            foreach ($allUsers as $notificar) {
+                User::findOrFail($notificar->id)->notify(new NotifyAdmin($arregloDatos));
             }
 
             DB::commit();

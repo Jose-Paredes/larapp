@@ -7,6 +7,7 @@
 
 require('./bootstrap');
 
+window.$ = window.JQuery = require('jquery');
 window.Vue = require('vue');
 
 /**
@@ -24,10 +25,30 @@ Vue.component('user', require('./components/User.vue'));
 Vue.component('ingreso', require('./components/Ingreso.vue'));
 Vue.component('venta', require('./components/Venta.vue'));
 Vue.component('dashboard', require('./components/Dashboard.vue'));
+Vue.component('consultaingreso', require('./components/ConsultaIngreso.vue'));
+Vue.component('consultaventa', require('./components/ConsultaVenta.vue'));
+Vue.component('notification', require('./components/Notification.vue'));
 
 const app = new Vue({
     el: '#app',
     data :{
-        menu : 0
+        menu : 0,
+        notifications: []
+    },
+    created() {
+        let me = this;
+        axios.post('notification/get').then(function (response) {
+            //console.log(response.data);
+            me.notifications = response.data;
+        }).catch(function (error) {
+            console.log(error);
+        });
+
+        // Almacenamos el id del usuario que esta trabajando en el sistema
+        var userId = $('meta[name="userId"]').attr('content');
+
+        Echo.private('App.User.'+userId).notification((notification) => {
+            me.notifications.unshift(notification);
+        });
     }
 });
